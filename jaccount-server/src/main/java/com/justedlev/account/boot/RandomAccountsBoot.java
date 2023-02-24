@@ -6,6 +6,7 @@ import com.justedlev.account.enumeration.AccountStatusCode;
 import com.justedlev.account.enumeration.Gender;
 import com.justedlev.account.enumeration.ModeType;
 import com.justedlev.account.repository.entity.Account;
+import com.justedlev.account.repository.entity.Contact;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Component;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -43,16 +45,20 @@ public class RandomAccountsBoot implements ApplicationRunner {
             for (int i = 0; i < count; i++) {
                 var phone = phoneNumberConverter.convert("+" + countries[getRandomIndex(countries.length)] + RandomUtils.nextInt(1000000, 9999999));
                 var nickname = RandomStringUtils.random(RandomUtils.nextInt(4, 9), SYMBOLS);
+                var contact = Contact.builder()
+                        .phoneNumber(phone)
+                        .email(nickname + "@mail.co")
+                        .main(true)
+                        .build();
                 var account = Account.builder()
                         .nickname(nickname)
-                        .email(nickname + "@mail.co")
                         .status(accountStatuses[getRandomIndex(accountStatuses.length)])
                         .mode(modes[getRandomIndex(modes.length)])
                         .gender(genders[getRandomIndex(genders.length)])
                         .firstName(RandomStringUtils.randomAlphanumeric(4, 8))
                         .lastName(RandomStringUtils.randomAlphanumeric(4, 8))
-                        .phoneNumberInfo(phone)
                         .createdAt(new Timestamp(RandomUtils.nextLong(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(3), System.currentTimeMillis())))
+                        .contacts(Set.of(contact))
                         .build();
                 list.add(account);
             }

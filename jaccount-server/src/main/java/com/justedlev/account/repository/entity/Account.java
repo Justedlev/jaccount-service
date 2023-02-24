@@ -4,7 +4,6 @@ import com.justedlev.account.enumeration.AccountStatusCode;
 import com.justedlev.account.enumeration.Gender;
 import com.justedlev.account.enumeration.ModeType;
 import com.justedlev.account.model.Avatar;
-import com.justedlev.account.model.PhoneNumberInfo;
 import com.justedlev.account.util.DateTimeUtils;
 import com.justedlev.account.util.Generator;
 import com.justedlev.common.entity.BaseEntity;
@@ -15,10 +14,8 @@ import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
-import javax.validation.constraints.Email;
 import java.sql.Timestamp;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 @SuperBuilder
 @AllArgsConstructor
@@ -45,12 +42,6 @@ public class Account extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "gender")
     private Gender gender;
-    @Email
-    @Column(name = "email", nullable = false)
-    private String email;
-    @Type(type = "jsonb")
-    @Column(name = "phone_number_info", columnDefinition = "jsonb")
-    private PhoneNumberInfo phoneNumberInfo;
     @Type(type = "jsonb")
     @Column(name = "avatar", columnDefinition = "jsonb")
     private Avatar avatar;
@@ -68,6 +59,19 @@ public class Account extends BaseEntity {
     @Builder.Default
     @Column(name = "modeAt", nullable = false)
     private Timestamp modeAt = DateTimeUtils.nowTimestamp();
+    @Builder.Default
+    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL)
+//    @JoinTable(name = "accounts_contacts",
+//            joinColumns = {@JoinColumn(name = "account_id")},
+//            inverseJoinColumns = {@JoinColumn(name = "contact_id")}
+//    )
+    private Set<Contact> contacts = new HashSet<>();
+
+    public Optional<Contact> findPrimaryContact() {
+        return contacts.stream()
+                .filter(Contact::isMain)
+                .findFirst();
+    }
 
     public void setMode(ModeType mode) {
         this.mode = mode;

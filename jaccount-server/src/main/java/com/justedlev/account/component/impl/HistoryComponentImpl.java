@@ -37,7 +37,7 @@ public class HistoryComponentImpl implements HistoryComponent {
                 .getContent()
                 .parallelStream()
                 .map(accountMapper::map)
-                .collect(Collectors.groupingBy(AccountResponse::getEmail));
+                .collect(Collectors.groupingBy(AccountResponse::getNickname));
 
         return accounts.entrySet().parallelStream()
                 .map(current -> AccountHistoryResponse.builder()

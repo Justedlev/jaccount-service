@@ -10,8 +10,6 @@ import com.justedlev.account.model.request.AccountRequest;
 import com.justedlev.account.repository.AccountRepository;
 import com.justedlev.account.repository.custom.filter.AccountFilter;
 import com.justedlev.account.repository.entity.Account;
-import com.justedlev.account.repository.entity.Account_;
-import com.justedlev.account.repository.specification.AndSpecification;
 import com.justedlev.storage.client.JStorageFeignClient;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -26,9 +24,6 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.persistence.EntityExistsException;
 import javax.persistence.EntityNotFoundException;
 import java.util.*;
-
-import static com.justedlev.account.repository.specification.QueryOperator.EQUAL;
-import static com.justedlev.account.repository.specification.QueryOperator.NOT_NULL;
 
 @Component
 @RequiredArgsConstructor
@@ -145,25 +140,25 @@ public class AccountComponentImpl implements AccountComponent {
 
     @Override
     public Optional<Account> getByNickname(String nickname) {
-        var specification = AndSpecification
-                .<Account>where(Account_.NICKNAME, EQUAL, nickname)
-                .and(Account_.EMAIL, NOT_NULL)
-                .and(Account_.ID, NOT_NULL)
-                .build();
-
-        return accountRepository.findAll(specification)
-                .stream()
-                .max(Comparator.comparing(Account::getCreatedAt));
-//        return Optional.ofNullable(nickname)
-//                .filter(StringUtils::isNotBlank)
-//                .map(Set::of)
-//                .map(current -> AccountFilter.builder()
-//                        .nicknames(current)
-//                        .build())
-//                .map(this::getByFilter)
+//        var specification = AndSpecification
+//                .<Account>where(Account_.NICKNAME, EQUAL, nickname)
+//                .and(Account_., NOT_NULL)
+//                .and(Account_.ID, NOT_NULL)
+//                .build();
+//
+//        return accountRepository.findAll(specification)
 //                .stream()
-//                .flatMap(Collection::stream)
 //                .max(Comparator.comparing(Account::getCreatedAt));
+        return Optional.ofNullable(nickname)
+                .filter(StringUtils::isNotBlank)
+                .map(Set::of)
+                .map(current -> AccountFilter.builder()
+                        .nicknames(current)
+                        .build())
+                .map(this::getByFilter)
+                .stream()
+                .flatMap(Collection::stream)
+                .max(Comparator.comparing(Account::getCreatedAt));
     }
 
     @Override

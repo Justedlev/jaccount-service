@@ -103,9 +103,9 @@ public class AccountCustomRepositoryImpl implements AccountCustomRepository {
             predicates.add(root.get(Account_.id).in(filter.getIds()));
         }
 
-        if (CollectionUtils.isNotEmpty(filter.getEmails())) {
-            predicates.add(cb.lower(root.get(Account_.email)).in(Converter.toLowerCase(filter.getEmails())));
-        }
+//        if (CollectionUtils.isNotEmpty(filter.getEmails())) {
+//            predicates.add(cb.lower(root.get(Account_.email)).in(Converter.toLowerCase(filter.getEmails())));
+//        }
 
         if (CollectionUtils.isNotEmpty(filter.getNicknames())) {
             predicates.add(cb.lower(root.get(Account_.nickname)).in(Converter.toLowerCase(filter.getNicknames())));
@@ -140,18 +140,18 @@ public class AccountCustomRepositoryImpl implements AccountCustomRepository {
 
     private Predicate createSearchPredicate(String searchText, CriteriaBuilder cb, Root<Account> root) {
         var q = "%" + searchText.toLowerCase() + "%";
-        var nationalNumber = cb.function(
-                "jsonb_extract_path_text",
-                String.class,
-                root.get(Account_.phoneNumberInfo),
-                cb.literal("national")
-        );
+//        var nationalNumber = cb.function(
+//                "jsonb_extract_path_text",
+//                String.class,
+//                root.get(Account_.phoneNumberInfo),
+//                cb.literal("national")
+//        );
         var predicate = cb.or(
-                cb.like(cb.lower(root.get(Account_.email)), q),
+//                cb.like(cb.lower(root.get(Account_.email)), q),
                 cb.like(cb.lower(root.get(Account_.nickname)), q),
                 cb.like(cb.lower(root.get(Account_.firstName)), q),
-                cb.like(cb.lower(root.get(Account_.lastName)), q),
-                cb.like(nationalNumber, q)
+                cb.like(cb.lower(root.get(Account_.lastName)), q)
+//                cb.like(nationalNumber, q)
         );
 
         return cb.and(predicate);
