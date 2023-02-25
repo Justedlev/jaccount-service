@@ -3,13 +3,10 @@ package com.justedlev.account.repository.custom.impl;
 import com.justedlev.account.repository.custom.AccountCustomRepository;
 import com.justedlev.account.repository.custom.filter.AccountFilter;
 import com.justedlev.account.repository.entity.*;
-import com.justedlev.account.util.Converter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,7 +19,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.*;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -38,7 +34,7 @@ public class AccountCustomRepositoryImpl implements AccountCustomRepository {
         var cb = em.getCriteriaBuilder();
         var cq = cb.createQuery(Account.class);
         var root = cq.from(Account.class);
-        var predicateList = buildPredicates(filter, cb, root);
+        var predicateList = filter.apply(cb, root);
         applyPredicates(cq, predicateList);
 
         return em.createQuery(cq).getResultList();
@@ -65,7 +61,7 @@ public class AccountCustomRepositoryImpl implements AccountCustomRepository {
                                         Root<Account> root,
                                         Join<Account, Contact> contacts,
                                         Join<Contact, PhoneNumber> phoneNumber) {
-        var predicateList = buildPredicates(filter, cb, root);
+        var predicateList = filter.apply(cb, root);
         createSearchPredicate(filter.getSearchText(), cb, root, contacts, phoneNumber)
                 .ifPresent(predicateList::add);
 
@@ -119,40 +115,6 @@ public class AccountCustomRepositoryImpl implements AccountCustomRepository {
         }
 
         return cq.select(cb.count(root));
-    }
-
-    private List<Predicate> buildPredicates(AccountFilter filter, CriteriaBuilder cb, Root<Account> root) {
-        List<Predicate> predicates = new ArrayList<>();
-
-        if (CollectionUtils.isNotEmpty(filter.getIds())) {
-            predicates.add(root.get(Account_.id).in(filter.getIds()));
-        }
-
-        if (CollectionUtils.isNotEmpty(filter.getNicknames())) {
-            predicates.add(cb.lower(root.get(Account_.nickname)).in(Converter.toLowerCase(filter.getNicknames())));
-        }
-
-        if (CollectionUtils.isNotEmpty(filter.getModes())) {
-            predicates.add(root.get(Account_.mode).in(filter.getModes()));
-        }
-
-        if (ObjectUtils.isNotEmpty(filter.getModeAtFrom())) {
-            predicates.add(cb.greaterThanOrEqualTo(root.get(Account_.modeAt), filter.getModeAtFrom()));
-        }
-
-        if (ObjectUtils.isNotEmpty(filter.getModeAtTo())) {
-            predicates.add(cb.lessThanOrEqualTo(root.get(Account_.modeAt), filter.getModeAtTo()));
-        }
-
-        if (CollectionUtils.isNotEmpty(filter.getStatuses())) {
-            predicates.add(root.get(Account_.status).in(filter.getStatuses()));
-        }
-
-        if (CollectionUtils.isNotEmpty(filter.getActivationCodes())) {
-            predicates.add(root.get(Account_.activationCode).in(filter.getActivationCodes()));
-        }
-
-        return predicates;
     }
 
     private Optional<Predicate> createSearchPredicate(String searchText,
