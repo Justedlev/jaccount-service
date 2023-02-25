@@ -15,6 +15,4 @@ public interface AccountRepository extends JpaRepository<Account, UUID>, JpaSpec
     List<Account> findByNicknameIn(Collection<String> nicknames);
 
     List<Account> findByContactsEmailIn(Collection<String> emails);
-
-    boolean existsByNickname(String nickname);
 }
