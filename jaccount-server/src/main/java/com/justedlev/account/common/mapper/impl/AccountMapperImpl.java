@@ -34,12 +34,12 @@ public class AccountMapperImpl implements AccountMapper {
     @Override
     public AccountResponse map(Account request) {
         var res = mapper.map(request, AccountResponse.class);
-        var phoneNumbers = request.getContacts()
+        var contacts = request.getContacts()
                 .stream()
                 .map(Contact::getPhoneNumber)
                 .map(current -> mapper.map(current, ContactResponse.class))
                 .collect(Collectors.toSet());
-        res.setContacts(phoneNumbers);
+        res.setContacts(contacts);
 
         return res;
     }
