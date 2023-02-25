@@ -27,7 +27,6 @@ import java.util.concurrent.TimeUnit;
 @Order(value = 10)
 @RequiredArgsConstructor
 public class RandomAccountsBoot implements ApplicationRunner {
-    private static final String SYMBOLS = "QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm1234567890";
     private static final Boolean FILL = Boolean.TRUE;
     private final AccountComponent accountComponent;
     private final PhoneNumberConverter phoneNumberConverter;
@@ -44,7 +43,7 @@ public class RandomAccountsBoot implements ApplicationRunner {
             List<Account> list = new ArrayList<>();
             for (int i = 0; i < count; i++) {
                 var phone = phoneNumberConverter.convert("+" + countries[getRandomIndex(countries.length)] + RandomUtils.nextInt(1000000, 9999999));
-                var nickname = RandomStringUtils.random(RandomUtils.nextInt(4, 9), SYMBOLS);
+                var nickname = RandomStringUtils.randomAlphanumeric(4, 8);
                 var contact = Contact.builder()
                         .phoneNumber(phone)
                         .email(nickname + "@mail.co")
