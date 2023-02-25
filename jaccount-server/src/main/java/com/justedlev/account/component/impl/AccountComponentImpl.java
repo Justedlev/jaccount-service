@@ -156,7 +156,10 @@ public class AccountComponentImpl implements AccountComponent {
         return Optional.ofNullable(nickname)
                 .filter(StringUtils::isNotBlank)
                 .map(Set::of)
-                .map(accountRepository::findByNicknameIn)
+                .map(current -> AccountFilter.builder()
+                        .nicknames(current)
+                        .build())
+                .map(this::getByFilter)
                 .stream()
                 .flatMap(Collection::stream)
                 .max(Comparator.comparing(Account::getCreatedAt));
@@ -185,7 +188,10 @@ public class AccountComponentImpl implements AccountComponent {
         return Optional.ofNullable(email)
                 .filter(StringUtils::isNotBlank)
                 .map(Set::of)
-                .map(accountRepository::findByContactsEmailIn)
+                .map(current -> AccountFilter.builder()
+                        .emails(current)
+                        .build())
+                .map(this::getByFilter)
                 .stream()
                 .flatMap(Collection::stream)
                 .max(Comparator.comparing(Account::getCreatedAt));
