@@ -66,7 +66,7 @@ public class Account extends BaseEntity {
     private Timestamp modeAt = DateTimeUtils.nowTimestamp();
     @Builder.Default
     @ToString.Exclude
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "account")
+    @OneToMany(mappedBy = "account")
     @Cascade({
             CascadeType.DETACH,
             CascadeType.MERGE,
