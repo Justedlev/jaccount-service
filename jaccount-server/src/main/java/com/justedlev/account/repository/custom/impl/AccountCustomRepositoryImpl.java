@@ -34,6 +34,7 @@ public class AccountCustomRepositoryImpl implements AccountCustomRepository {
         var cb = em.getCriteriaBuilder();
         var cq = cb.createQuery(Account.class);
         var root = cq.from(Account.class);
+        root.fetch(Account_.contacts).fetch(Contact_.phoneNumber);
         var predicateList = filter.apply(cb, root);
         applyPredicates(cq, predicateList);
 
