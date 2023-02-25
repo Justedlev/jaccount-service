@@ -28,8 +28,7 @@ public class ResponseExceptionHandler extends ResponseEntityExceptionHandler {
             IllegalStateException.class
     })
     public ResponseEntity<ErrorDetailsResponse> handleConflictExceptions(Exception ex, WebRequest request) {
-        log.error(ex.getMessage());
-        ex.printStackTrace();
+        log.error(ex.getMessage(), ex);
         var errorDetails = ErrorDetailsResponse.builder()
                 .details(request.getDescription(false))
                 .message(ex.getMessage())
@@ -41,8 +40,7 @@ public class ResponseExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(value = EntityNotFoundException.class)
     public ResponseEntity<ErrorDetailsResponse> handleEntityNotFoundException(EntityNotFoundException ex,
                                                                               WebRequest request) {
-        log.error(ex.getMessage());
-        ex.printStackTrace();
+        log.error(ex.getMessage(), ex);
         var errorDetails = ErrorDetailsResponse.builder()
                 .details(request.getDescription(false))
                 .message(ex.getMessage())
@@ -53,8 +51,7 @@ public class ResponseExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(value = FeignException.class)
     public ResponseEntity<ErrorDetailsResponse> handleFeignException(FeignException ex, WebRequest request) {
-        log.error(ex.getMessage());
-        ex.printStackTrace();
+        log.error(ex.getMessage(), ex);
         var errorDetails = ErrorDetailsResponse.builder()
                 .details(request.getDescription(false))
                 .message(ex.getLocalizedMessage())
@@ -67,8 +64,7 @@ public class ResponseExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(value = ConstraintViolationException.class)
     public ResponseEntity<ValidationErrorResponse> handleConstraintViolationException(ConstraintViolationException ex,
                                                                                       WebRequest request) {
-        log.error(ex.getMessage());
-        ex.printStackTrace();
+        log.error(ex.getMessage(), ex);
         var violations = ex.getConstraintViolations()
                 .stream()
                 .map(current -> ViolationResponse.builder()
@@ -90,8 +86,7 @@ public class ResponseExceptionHandler extends ResponseEntityExceptionHandler {
                                                                   @NonNull HttpHeaders headers,
                                                                   @NonNull HttpStatus status,
                                                                   @NonNull WebRequest request) {
-        log.error(ex.getMessage());
-        ex.printStackTrace();
+        log.error(ex.getMessage(), ex);
         var violations = ex.getBindingResult().getFieldErrors()
                 .stream()
                 .map(current -> ViolationResponse.builder()

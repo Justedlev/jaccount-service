@@ -10,6 +10,8 @@ import com.justedlev.common.entity.BaseEntity;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.Hibernate;
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.CascadeType;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Type;
 
@@ -57,14 +59,23 @@ public class Account extends BaseEntity {
     @Column(name = "mode", nullable = false)
     private ModeType mode = ModeType.OFFLINE;
     @Builder.Default
-    @Column(name = "modeAt", nullable = false)
+    @Column(name = "mode_at", nullable = false)
     private Timestamp modeAt = DateTimeUtils.nowTimestamp();
     @Builder.Default
-    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL)
-//    @JoinTable(name = "accounts_contacts",
-//            joinColumns = {@JoinColumn(name = "account_id")},
-//            inverseJoinColumns = {@JoinColumn(name = "contact_id")}
-//    )
+    @ToString.Exclude
+    @OneToMany
+    @JoinTable(
+            name = "accounts_contacts",
+            joinColumns = {@JoinColumn(name = "account_id")},
+            inverseJoinColumns = {@JoinColumn(name = "contact_id")}
+    )
+    @Cascade({
+            CascadeType.DETACH,
+            CascadeType.MERGE,
+            CascadeType.PERSIST,
+            CascadeType.REFRESH,
+            CascadeType.SAVE_UPDATE
+    })
     private Set<Contact> contacts = new HashSet<>();
 
     public Optional<Contact> findPrimaryContact() {

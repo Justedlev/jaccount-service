@@ -24,8 +24,7 @@ public class AccountResponse {
     private Date birthDate;
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Gender gender;
-    private Set<String> emails;
-    private Set<PhoneNumberResponse> phoneNumbers;
+    private Set<ContactResponse> contacts;
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private AccountStatusCode status;
     @JsonFormat(shape = JsonFormat.Shape.STRING)

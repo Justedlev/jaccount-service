@@ -3,6 +3,8 @@ package com.justedlev.account.repository.entity;
 import com.justedlev.common.entity.BaseEntity;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.CascadeType;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
@@ -29,10 +31,34 @@ public class Contact extends BaseEntity {
     @Email
     @Column(name = "email", nullable = false)
     private String email;
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "phone_number_id", referencedColumnName = "phone_number_id")
+    @ToString.Exclude
+    @OneToOne
+    @Cascade({
+            CascadeType.DETACH,
+            CascadeType.MERGE,
+            CascadeType.PERSIST,
+            CascadeType.REFRESH,
+            CascadeType.SAVE_UPDATE
+    })
+    @JoinTable(
+            name = "contacts_phone_numbers",
+            joinColumns = {@JoinColumn(name = "contact_id")},
+            inverseJoinColumns = {@JoinColumn(name = "phone_number_id")}
+    )
     private PhoneNumber phoneNumber;
+    @ToString.Exclude
     @ManyToOne
-    @JoinColumn(name = "account_id", nullable = false)
+    @Cascade({
+            CascadeType.DETACH,
+            CascadeType.MERGE,
+            CascadeType.PERSIST,
+            CascadeType.REFRESH,
+            CascadeType.SAVE_UPDATE
+    })
+    @JoinTable(
+            name = "accounts_contacts",
+            joinColumns = {@JoinColumn(name = "contact_id")},
+            inverseJoinColumns = {@JoinColumn(name = "account_id")}
+    )
     private Account account;
 }

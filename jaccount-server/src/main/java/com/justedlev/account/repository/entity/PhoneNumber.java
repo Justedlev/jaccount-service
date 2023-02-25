@@ -30,6 +30,7 @@ public class PhoneNumber extends BaseEntity {
     private Integer countryCode;
     @Column(name = "region_code")
     private String regionCode;
+    @ToString.Exclude
     @OneToOne(mappedBy = "phoneNumber")
     private Contact contact;
 }

@@ -5,6 +5,8 @@ import com.justedlev.account.component.AccountComponent;
 import com.justedlev.account.enumeration.AccountStatusCode;
 import com.justedlev.account.enumeration.Gender;
 import com.justedlev.account.enumeration.ModeType;
+import com.justedlev.account.repository.AccountRepository;
+import com.justedlev.account.repository.ContactRepository;
 import com.justedlev.account.repository.entity.Account;
 import com.justedlev.account.repository.entity.Contact;
 import lombok.RequiredArgsConstructor;
@@ -28,12 +30,17 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class RandomAccountsBoot implements ApplicationRunner {
     private static final String SYMBOLS = "QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm1234567890";
-    private static final Boolean FILL = Boolean.FALSE;
+    private static final Boolean FILL = Boolean.TRUE;
     private final AccountComponent accountComponent;
     private final PhoneNumberConverter phoneNumberConverter;
+    private final ContactRepository contactRepository;
+    private final AccountRepository accountRepository;
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
+        var c = contactRepository.findAll();
+        var a = accountRepository.findAll();
+
         if (Boolean.TRUE.equals(FILL)) {
             var accountStatuses = AccountStatusCode.values();
             var modes = ModeType.values();

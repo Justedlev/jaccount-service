@@ -6,6 +6,7 @@ import com.justedlev.account.common.mapper.BaseModelMapper;
 import com.justedlev.account.model.Avatar;
 import com.justedlev.account.model.request.AccountRequest;
 import com.justedlev.account.model.response.AccountResponse;
+import com.justedlev.account.model.response.ContactResponse;
 import com.justedlev.account.repository.entity.Account;
 import com.justedlev.account.repository.entity.Contact;
 import com.justedlev.account.repository.entity.PhoneNumber;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -31,12 +33,28 @@ public class AccountMapperImpl implements AccountMapper {
 
     @Override
     public AccountResponse map(Account request) {
-        return mapper.map(request, AccountResponse.class);
+        var res = mapper.map(request, AccountResponse.class);
+        var phoneNumbers = request.getContacts()
+                .stream()
+                .map(Contact::getPhoneNumber)
+                .map(current -> mapper.map(current, ContactResponse.class))
+                .collect(Collectors.toSet());
+        res.setContacts(phoneNumbers);
+
+        return res;
     }
 
     @Override
     public Account map(AccountRequest request) {
-        return mapper.map(request, Account.class);
+        var res = mapper.map(request, Account.class);
+        var contact = Contact.builder()
+                .main(Boolean.TRUE)
+                .phoneNumber(phoneNumberConverter.convert(request.getPhoneNumber()))
+                .email(request.getEmail())
+                .build();
+        res.setContacts(Set.of(contact));
+
+        return res;
     }
 
     @PostConstruct
@@ -44,22 +62,6 @@ public class AccountMapperImpl implements AccountMapper {
         mapper.createTypeMap(Account.class, AccountResponse.class)
                 .addMapping(Account::getCreatedAt, AccountResponse::setRegistrationDate)
                 .addMapping(this::getAvatarUrl, AccountResponse::setAvatarUrl);
-//                .addMapping(account -> account.getContacts()
-//                        .stream()
-//                        .map(Contact::getPhoneNumber)
-//                        .map(current -> PhoneNumberResponse.builder()
-//                                .countryCode(current.getCountryCode())
-//                                .national(current.getNational())
-//                                .international(current.getInternational())
-//                                .regionCode(current.getRegionCode())
-//                                .build())
-//                        .collect(Collectors.toSet()), AccountResponse::setPhoneNumbers)
-//                .addMapping(account -> account.getContacts()
-//                        .stream()
-//                        .map(Contact::getEmail)
-//                        .collect(Collectors.toSet()), AccountResponse::setEmails);
-        mapper.createTypeMap(AccountRequest.class, Account.class)
-                .addMapping(this::convertToContacts, Account::setContacts);
     }
 
     private Set<Contact> convertToContacts(AccountRequest accountRequest) {
