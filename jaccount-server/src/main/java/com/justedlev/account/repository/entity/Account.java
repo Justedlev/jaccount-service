@@ -66,12 +66,7 @@ public class Account extends BaseEntity {
     private Timestamp modeAt = DateTimeUtils.nowTimestamp();
     @Builder.Default
     @ToString.Exclude
-    @OneToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "accounts_contacts",
-            joinColumns = {@JoinColumn(name = "account_id")},
-            inverseJoinColumns = {@JoinColumn(name = "contact_id")}
-    )
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "account")
     @Cascade({
             CascadeType.DETACH,
             CascadeType.MERGE,

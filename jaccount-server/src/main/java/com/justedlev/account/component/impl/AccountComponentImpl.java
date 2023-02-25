@@ -2,6 +2,7 @@ package com.justedlev.account.component.impl;
 
 import com.justedlev.account.common.mapper.AccountMapper;
 import com.justedlev.account.component.AccountComponent;
+import com.justedlev.account.component.ContactComponent;
 import com.justedlev.account.constant.ExceptionConstant;
 import com.justedlev.account.enumeration.AccountStatusCode;
 import com.justedlev.account.enumeration.ModeType;
@@ -33,6 +34,7 @@ public class AccountComponentImpl implements AccountComponent {
     private final AccountMapper accountMapper;
     private final JStorageFeignClient storageFeignClient;
     private final ModelMapper baseMapper;
+    private final ContactComponent contactComponent;
 
     @Override
     public List<Account> getByFilter(AccountFilter filter) {
@@ -186,7 +188,7 @@ public class AccountComponentImpl implements AccountComponent {
                 .map(accountRepository::findByContactsEmailIn)
                 .stream()
                 .flatMap(Collection::stream)
-                .findFirst();
+                .max(Comparator.comparing(Account::getCreatedAt));
     }
 
     private void validateActivationCode(String activationCode) {
