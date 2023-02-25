@@ -36,7 +36,6 @@ public class AccountMapperImpl implements AccountMapper {
         var res = mapper.map(request, AccountResponse.class);
         var contacts = request.getContacts()
                 .stream()
-                .map(Contact::getPhoneNumber)
                 .map(current -> mapper.map(current, ContactResponse.class))
                 .collect(Collectors.toSet());
         res.setContacts(contacts);
