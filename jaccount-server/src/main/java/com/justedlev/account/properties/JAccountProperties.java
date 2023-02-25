@@ -20,6 +20,7 @@ public class JAccountProperties {
     public static class Service {
         private String name;
         private String email;
+        private String label;
         private String host;
     }
 }

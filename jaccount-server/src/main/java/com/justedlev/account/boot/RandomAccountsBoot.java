@@ -5,6 +5,7 @@ import com.justedlev.account.component.AccountComponent;
 import com.justedlev.account.enumeration.AccountStatusCode;
 import com.justedlev.account.enumeration.Gender;
 import com.justedlev.account.enumeration.ModeType;
+import com.justedlev.account.properties.JAccountProperties;
 import com.justedlev.account.repository.entity.Account;
 import com.justedlev.account.repository.entity.Contact;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 public class RandomAccountsBoot implements ApplicationRunner {
     private static final Boolean FILL = Boolean.TRUE;
     private final AccountComponent accountComponent;
+    private final JAccountProperties accountProperties;
     private final PhoneNumberConverter phoneNumberConverter;
 
     @Override
@@ -39,6 +41,7 @@ public class RandomAccountsBoot implements ApplicationRunner {
             var genders = Gender.values();
             var count = RandomUtils.nextInt(10, 50);
             var phonePrefix = "+972";
+            var emailPostfix = "@" + accountProperties.getService().getName().toLowerCase() + ".co.il";
 
             List<Account> list = new ArrayList<>();
             for (int i = 0; i < count; i++) {
@@ -47,7 +50,7 @@ public class RandomAccountsBoot implements ApplicationRunner {
                 var nickname = RandomStringUtils.randomAlphanumeric(4, 8);
                 var contact = Contact.builder()
                         .phoneNumber(phone)
-                        .email(nickname + "@mail.co")
+                        .email(nickname + emailPostfix)
                         .main(true)
                         .build();
                 var account = Account.builder()

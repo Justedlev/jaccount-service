@@ -54,5 +54,6 @@ jaccount:
     read-timeout: 10s
   service:
     email: ${SERVICE_MAIL_USERNAME}
-    name: ${SERVICE_NAME:JustedlevHub {•...•}}
+    name: ${SERVICE_NAME:JustedlevHub}
+    label: "{•...•}"
     host: ${SERVICE_HOST}
