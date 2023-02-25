@@ -71,23 +71,22 @@ public class AccountCustomRepositoryImpl implements AccountCustomRepository {
     private Predicate[] applyPredicates(CriteriaQuery<Account> cq,
                                         List<Predicate> predicateList) {
         var predicateArray = predicateList.toArray(Predicate[]::new);
-
-        if (ArrayUtils.isNotEmpty(predicateArray)) {
-            cq.where(predicateArray);
-        }
+        Optional.ofNullable(predicateArray)
+                .filter(ArrayUtils::isNotEmpty)
+                .ifPresent(cq::where);
 
         return predicateArray;
     }
 
     private TypedQuery<Account> applyPageable(Pageable pageable, CriteriaBuilder cb,
                                               CriteriaQuery<Account> cq, Root<Account> root) {
-        Optional.of(pageable)
+        Optional.ofNullable(pageable)
                 .map(Pageable::getSort)
                 .filter(Sort::isSorted)
                 .map(current -> QueryUtils.toOrders(pageable.getSort(), root, cb))
                 .ifPresent(cq::orderBy);
         var query = em.createQuery(cq);
-        Optional.of(pageable)
+        Optional.ofNullable(pageable)
                 .filter(Pageable::isPaged)
                 .ifPresent(current -> query.setFirstResult((int) current.getOffset())
                         .setMaxResults(current.getPageSize()));
@@ -105,10 +104,9 @@ public class AccountCustomRepositoryImpl implements AccountCustomRepository {
         var cq = cb.createQuery(Long.class);
         var root = cq.from(Account.class);
         root.join(Account_.contacts).join(Contact_.phoneNumber);
-
-        if (ArrayUtils.isNotEmpty(predicates)) {
-            cq.where(predicates);
-        }
+        Optional.ofNullable(predicates)
+                .filter(ArrayUtils::isNotEmpty)
+                .ifPresent(cq::where);
 
         return cq.select(cb.count(root));
     }
