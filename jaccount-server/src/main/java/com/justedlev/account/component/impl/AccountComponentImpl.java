@@ -145,22 +145,10 @@ public class AccountComponentImpl implements AccountComponent {
 
     @Override
     public Optional<Account> getByNickname(String nickname) {
-//        var specification = AndSpecification
-//                .<Account>where(Account_.NICKNAME, EQUAL, nickname)
-//                .and(Account_., NOT_NULL)
-//                .and(Account_.ID, NOT_NULL)
-//                .build();
-//
-//        return accountRepository.findAll(specification)
-//                .stream()
-//                .max(Comparator.comparing(Account::getCreatedAt));
         return Optional.ofNullable(nickname)
                 .filter(StringUtils::isNotBlank)
                 .map(Set::of)
-                .map(current -> AccountFilter.builder()
-                        .nicknames(current)
-                        .build())
-                .map(this::getByFilter)
+                .map(accountRepository::findByNicknameIn)
                 .stream()
                 .flatMap(Collection::stream)
                 .max(Comparator.comparing(Account::getCreatedAt));
@@ -189,10 +177,7 @@ public class AccountComponentImpl implements AccountComponent {
         return Optional.ofNullable(email)
                 .filter(StringUtils::isNotBlank)
                 .map(Set::of)
-                .map(current -> AccountFilter.builder()
-                        .emails(current)
-                        .build())
-                .map(this::getByFilter)
+                .map(accountRepository::findByContactsEmailIn)
                 .stream()
                 .flatMap(Collection::stream)
                 .findFirst();
