@@ -133,9 +133,9 @@ public class AccountCustomRepositoryImpl implements AccountCustomRepository {
                         cb.like(cb.lower(root.get(Account_.lastName)), q),
                         cb.like(cb.lower(contacts.get(Contact_.email)), q),
                         cb.like(cb.lower(phoneNumber.get(PhoneNumber_.national).as(String.class)), q),
-                        cb.like(cb.lower(phoneNumber.get(PhoneNumber_.international).as(String.class)), q),
+                        cb.like(cb.lower(phoneNumber.get(PhoneNumber_.international)), q),
                         cb.like(cb.lower(phoneNumber.get(PhoneNumber_.countryCode).as(String.class)), q),
-                        cb.like(cb.lower(phoneNumber.get(PhoneNumber_.regionCode).as(String.class)), q)
+                        cb.like(cb.lower(phoneNumber.get(PhoneNumber_.regionCode)), q)
                 ));
     }
 }
