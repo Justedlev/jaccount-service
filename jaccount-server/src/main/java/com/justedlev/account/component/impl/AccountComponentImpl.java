@@ -102,10 +102,16 @@ public class AccountComponentImpl implements AccountComponent {
 
     @Override
     public Account create(AccountRequest request) {
-        return getByEmail(request.getEmail())
+        var account = getByEmail(request.getEmail())
                 .or(() -> getByNickname(request.getNickname()))
-                .filter(current -> !current.getStatus().equals(AccountStatusCode.DELETED))
-                .orElse(accountMapper.map(request));
+                .filter(current -> !current.getStatus().equals(AccountStatusCode.DELETED));
+
+        if (account.isPresent()) {
+            throw new EntityExistsException(
+                    String.format("Account %s already exists", request.getNickname()));
+        }
+
+        return accountMapper.map(request);
     }
 
     @Override

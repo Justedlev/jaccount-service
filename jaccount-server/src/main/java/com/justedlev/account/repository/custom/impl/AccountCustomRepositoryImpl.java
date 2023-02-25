@@ -2,13 +2,12 @@ package com.justedlev.account.repository.custom.impl;
 
 import com.justedlev.account.repository.custom.AccountCustomRepository;
 import com.justedlev.account.repository.custom.filter.AccountFilter;
-import com.justedlev.account.repository.entity.Account;
-import com.justedlev.account.repository.entity.Account_;
+import com.justedlev.account.repository.entity.*;
 import com.justedlev.account.util.Converter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -22,12 +21,10 @@ import org.springframework.stereotype.Repository;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Repository
@@ -41,44 +38,68 @@ public class AccountCustomRepositoryImpl implements AccountCustomRepository {
         var cb = em.getCriteriaBuilder();
         var cq = cb.createQuery(Account.class);
         var root = cq.from(Account.class);
-        var predicates = buildPredicates(filter, cb, root);
-        applyPredicates(cq, predicates);
+        var predicateList = buildPredicates(filter, cb, root);
+        applyPredicates(cq, predicateList);
 
         return em.createQuery(cq).getResultList();
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public Page<Account> findByFilter(@NonNull AccountFilter filter, @NonNull Pageable pageable) {
         var cb = em.getCriteriaBuilder();
         var cq = cb.createQuery(Account.class);
         var root = cq.from(Account.class);
-        var predicates = buildPredicates(filter, cb, root);
-        applyPredicates(cq, predicates);
-        applyOrders(pageable.getSort(), cb, cq, root);
-        var query = em.createQuery(cq);
-        applyPageable(pageable, query);
-        var content = query.getResultList();
+        var contacts = (Join<Account, Contact>) root.fetch(Account_.contacts);
+        var phoneNumber = (Join<Contact, PhoneNumber>) contacts.fetch(Contact_.phoneNumber);
+        var predicates = applyPredicates(filter, cb, cq, root, contacts, phoneNumber);
+        var content = applyPageable(pageable, cb, cq, root)
+                .getResultList();
 
         return PageableExecutionUtils.getPage(content, pageable, () -> executeCountQuery(predicates));
+    }
+
+    private Predicate[] applyPredicates(AccountFilter filter,
+                                        CriteriaBuilder cb,
+                                        CriteriaQuery<Account> cq,
+                                        Root<Account> root,
+                                        Join<Account, Contact> contacts,
+                                        Join<Contact, PhoneNumber> phoneNumber) {
+        var predicateList = buildPredicates(filter, cb, root);
+        createSearchPredicate(filter.getSearchText(), cb, root, contacts, phoneNumber)
+                .ifPresent(predicateList::add);
+
+        return applyPredicates(cq, predicateList);
+    }
+
+    private Predicate[] applyPredicates(CriteriaQuery<Account> cq,
+                                        List<Predicate> predicateList) {
+        var predicateArray = predicateList.toArray(Predicate[]::new);
+
+        if (ArrayUtils.isNotEmpty(predicateArray)) {
+            cq.where(predicateArray);
+        }
+
+        return predicateArray;
+    }
+
+    private TypedQuery<Account> applyPageable(Pageable pageable, CriteriaBuilder cb,
+                                              CriteriaQuery<Account> cq, Root<Account> root) {
+        var query = em.createQuery(cq);
+
+        if (pageable.isPaged()) {
+            applyOrders(pageable.getSort(), cb, cq, root);
+            query.setFirstResult((int) pageable.getOffset())
+                    .setMaxResults(pageable.getPageSize());
+        }
+
+        return query;
     }
 
     private void applyOrders(Sort sort, CriteriaBuilder cb, CriteriaQuery<Account> cq, Root<Account> root) {
         if (sort.isSorted()) {
             var orders = QueryUtils.toOrders(sort, root, cb);
             cq.orderBy(orders);
-        }
-    }
-
-    private void applyPageable(Pageable pageable, TypedQuery<Account> query) {
-        if (pageable.isPaged()) {
-            query.setFirstResult((int) pageable.getOffset())
-                    .setMaxResults(pageable.getPageSize());
-        }
-    }
-
-    private <T> void applyPredicates(CriteriaQuery<T> cq, Predicate... predicates) {
-        if (ArrayUtils.isNotEmpty(predicates)) {
-            cq.where(predicates);
         }
     }
 
@@ -91,21 +112,21 @@ public class AccountCustomRepositoryImpl implements AccountCustomRepository {
         var cb = em.getCriteriaBuilder();
         var cq = cb.createQuery(Long.class);
         var root = cq.from(Account.class);
-        applyPredicates(cq, predicates);
+        root.join(Account_.contacts).join(Contact_.phoneNumber);
+
+        if (ArrayUtils.isNotEmpty(predicates)) {
+            cq.where(predicates);
+        }
 
         return cq.select(cb.count(root));
     }
 
-    private Predicate[] buildPredicates(AccountFilter filter, CriteriaBuilder cb, Root<Account> root) {
+    private List<Predicate> buildPredicates(AccountFilter filter, CriteriaBuilder cb, Root<Account> root) {
         List<Predicate> predicates = new ArrayList<>();
 
         if (CollectionUtils.isNotEmpty(filter.getIds())) {
             predicates.add(root.get(Account_.id).in(filter.getIds()));
         }
-
-//        if (CollectionUtils.isNotEmpty(filter.getEmails())) {
-//            predicates.add(cb.lower(root.get(Account_.email)).in(Converter.toLowerCase(filter.getEmails())));
-//        }
 
         if (CollectionUtils.isNotEmpty(filter.getNicknames())) {
             predicates.add(cb.lower(root.get(Account_.nickname)).in(Converter.toLowerCase(filter.getNicknames())));
@@ -131,29 +152,28 @@ public class AccountCustomRepositoryImpl implements AccountCustomRepository {
             predicates.add(root.get(Account_.activationCode).in(filter.getActivationCodes()));
         }
 
-        if (StringUtils.isNotBlank(filter.getSearchText())) {
-            predicates.add(createSearchPredicate(filter.getSearchText(), cb, root));
-        }
-
-        return predicates.toArray(Predicate[]::new);
+        return predicates;
     }
 
-    private Predicate createSearchPredicate(String searchText, CriteriaBuilder cb, Root<Account> root) {
-        var q = "%" + searchText.toLowerCase() + "%";
-//        var nationalNumber = cb.function(
-//                "jsonb_extract_path_text",
-//                String.class,
-//                root.get(Account_.phoneNumberInfo),
-//                cb.literal("national")
-//        );
-        var predicate = cb.or(
-//                cb.like(cb.lower(root.get(Account_.email)), q),
-                cb.like(cb.lower(root.get(Account_.nickname)), q),
-                cb.like(cb.lower(root.get(Account_.firstName)), q),
-                cb.like(cb.lower(root.get(Account_.lastName)), q)
-//                cb.like(nationalNumber, q)
-        );
-
-        return cb.and(predicate);
+    private Optional<Predicate> createSearchPredicate(String searchText,
+                                                      CriteriaBuilder cb,
+                                                      Path<Account> root,
+                                                      Join<Account, Contact> contacts,
+                                                      Join<Contact, PhoneNumber> phoneNumber) {
+        return Optional.ofNullable(searchText)
+                .filter(StringUtils::isNotBlank)
+                .map(String::toLowerCase)
+                .map(q -> q.replaceAll("\\s{2}", " "))
+                .map(q -> "%" + q + "%")
+                .map(q -> cb.or(
+                        cb.like(cb.lower(root.get(Account_.nickname)), q),
+                        cb.like(cb.lower(root.get(Account_.firstName)), q),
+                        cb.like(cb.lower(root.get(Account_.lastName)), q),
+                        cb.like(cb.lower(contacts.get(Contact_.email)), q),
+                        cb.like(cb.lower(phoneNumber.get(PhoneNumber_.national).as(String.class)), q),
+                        cb.like(cb.lower(phoneNumber.get(PhoneNumber_.international).as(String.class)), q),
+                        cb.like(cb.lower(phoneNumber.get(PhoneNumber_.countryCode).as(String.class)), q),
+                        cb.like(cb.lower(phoneNumber.get(PhoneNumber_.regionCode).as(String.class)), q)
+                ));
     }
 }
