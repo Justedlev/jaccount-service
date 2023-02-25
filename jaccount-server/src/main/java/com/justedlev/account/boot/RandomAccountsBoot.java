@@ -38,11 +38,12 @@ public class RandomAccountsBoot implements ApplicationRunner {
             var modes = ModeType.values();
             var genders = Gender.values();
             var count = RandomUtils.nextInt(10, 50);
-            var countries = new int[]{1202, 97253};
+            var phonePrefix = "+972";
 
             List<Account> list = new ArrayList<>();
             for (int i = 0; i < count; i++) {
-                var phone = phoneNumberConverter.convert("+" + countries[getRandomIndex(countries.length)] + RandomUtils.nextInt(1000000, 9999999));
+                var phoneNumber = phonePrefix + RandomUtils.nextInt(100000000, 999999999);
+                var phone = phoneNumberConverter.convert(phoneNumber);
                 var nickname = RandomStringUtils.randomAlphanumeric(4, 8);
                 var contact = Contact.builder()
                         .phoneNumber(phone)
