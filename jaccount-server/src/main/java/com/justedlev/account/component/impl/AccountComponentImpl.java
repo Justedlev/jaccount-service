@@ -62,7 +62,7 @@ public class AccountComponentImpl implements AccountComponent {
                 .build();
         var account = accountRepository.findByFilter(filter)
                 .stream()
-                .findFirst()
+                .max(Comparator.comparing(Account::getCreatedAt))
                 .orElseThrow(() -> new EntityNotFoundException("Already activated"));
         account.setStatus(AccountStatusCode.ACTUAL);
         account.getContacts()
