@@ -17,7 +17,10 @@ import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
 
 @SuperBuilder
 @AllArgsConstructor
@@ -63,7 +66,7 @@ public class Account extends BaseEntity {
     private Timestamp modeAt = DateTimeUtils.nowTimestamp();
     @Builder.Default
     @ToString.Exclude
-    @OneToMany
+    @OneToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "accounts_contacts",
             joinColumns = {@JoinColumn(name = "account_id")},
@@ -78,10 +81,11 @@ public class Account extends BaseEntity {
     })
     private Set<Contact> contacts = new HashSet<>();
 
-    public Optional<Contact> findPrimaryContact() {
+    public Contact getMainContact() {
         return contacts.stream()
                 .filter(Contact::isMain)
-                .findFirst();
+                .findFirst()
+                .orElseThrow(() -> new EntityNotFoundException("Cant find contact for account " + getId()));
     }
 
     public void setMode(ModeType mode) {

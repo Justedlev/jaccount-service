@@ -14,7 +14,6 @@ import com.justedlev.account.model.response.AccountResponse;
 import com.justedlev.account.properties.JAccountProperties;
 import com.justedlev.account.repository.custom.filter.AccountFilter;
 import com.justedlev.account.repository.entity.Account;
-import com.justedlev.account.repository.entity.Contact;
 import com.justedlev.account.service.AccountService;
 import com.justedlev.common.model.request.PaginationRequest;
 import com.justedlev.common.model.response.PageResponse;
@@ -134,9 +133,7 @@ public class AccountServiceImpl implements AccountService {
                 "{CONFIRMATION_LINK}", confirmationLink,
                 "{BEST_REGARDS_FROM}", properties.getService().getName()
         );
-        var recipient = account.findPrimaryContact()
-                .map(Contact::getEmail)
-                .orElseThrow(() -> new EntityNotFoundException("Cant find email for account " + account.getId()));
+        var recipient = account.getMainContact().getEmail();
         var mail = SendTemplateMailRequest.builder()
                 .recipient(recipient)
                 .subject(String.format(MailSubjectConstant.CONFIRMATION, properties.getService().getName()))
