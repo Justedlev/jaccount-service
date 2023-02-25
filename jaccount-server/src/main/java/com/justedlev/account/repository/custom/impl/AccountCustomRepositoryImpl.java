@@ -81,22 +81,18 @@ public class AccountCustomRepositoryImpl implements AccountCustomRepository {
 
     private TypedQuery<Account> applyPageable(Pageable pageable, CriteriaBuilder cb,
                                               CriteriaQuery<Account> cq, Root<Account> root) {
+        Optional.of(pageable)
+                .map(Pageable::getSort)
+                .filter(Sort::isSorted)
+                .map(current -> QueryUtils.toOrders(pageable.getSort(), root, cb))
+                .ifPresent(cq::orderBy);
         var query = em.createQuery(cq);
-
-        if (pageable.isPaged()) {
-            applyOrders(pageable.getSort(), cb, cq, root);
-            query.setFirstResult((int) pageable.getOffset())
-                    .setMaxResults(pageable.getPageSize());
-        }
+        Optional.of(pageable)
+                .filter(Pageable::isPaged)
+                .ifPresent(current -> query.setFirstResult((int) current.getOffset())
+                        .setMaxResults(current.getPageSize()));
 
         return query;
-    }
-
-    private void applyOrders(Sort sort, CriteriaBuilder cb, CriteriaQuery<Account> cq, Root<Account> root) {
-        if (sort.isSorted()) {
-            var orders = QueryUtils.toOrders(sort, root, cb);
-            cq.orderBy(orders);
-        }
     }
 
     private long executeCountQuery(Predicate... predicates) {
