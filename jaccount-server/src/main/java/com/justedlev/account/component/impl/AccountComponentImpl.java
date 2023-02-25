@@ -10,6 +10,7 @@ import com.justedlev.account.model.request.AccountRequest;
 import com.justedlev.account.repository.AccountRepository;
 import com.justedlev.account.repository.custom.filter.AccountFilter;
 import com.justedlev.account.repository.entity.Account;
+import com.justedlev.account.repository.entity.Contact;
 import com.justedlev.storage.client.JStorageFeignClient;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -62,6 +63,10 @@ public class AccountComponentImpl implements AccountComponent {
                 .findFirst()
                 .orElseThrow(() -> new EntityNotFoundException("Already activated"));
         account.setStatus(AccountStatusCode.ACTUAL);
+        account.getContacts()
+                .stream()
+                .min(Comparator.comparing(Contact::getCreatedAt))
+                .ifPresent(contact -> contact.setMain(Boolean.TRUE));
 
         return save(account);
     }

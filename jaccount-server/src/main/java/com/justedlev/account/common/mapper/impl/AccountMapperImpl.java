@@ -47,11 +47,7 @@ public class AccountMapperImpl implements AccountMapper {
     @Override
     public Account map(AccountRequest request) {
         var res = mapper.map(request, Account.class);
-        var contact = Contact.builder()
-                .main(Boolean.TRUE)
-                .phoneNumber(phoneNumberConverter.convert(request.getPhoneNumber()))
-                .email(request.getEmail())
-                .build();
+        var contact = convertToContact(request);
         res.setContacts(Set.of(contact));
 
         return res;
@@ -64,20 +60,18 @@ public class AccountMapperImpl implements AccountMapper {
                 .addMapping(this::getAvatarUrl, AccountResponse::setAvatarUrl);
     }
 
-    private Set<Contact> convertToContacts(AccountRequest accountRequest) {
-        var contact = Contact.builder()
-                .phoneNumber(convertToPhone(accountRequest))
-                .email(accountRequest.getEmail())
-                .build();
-
-        return Set.of(contact);
-    }
-
     private String getAvatarUrl(Account account) {
         return Optional.of(account)
                 .map(Account::getAvatar)
                 .map(Avatar::getUrl)
                 .orElse(null);
+    }
+
+    private Contact convertToContact(AccountRequest accountRequest) {
+        return Contact.builder()
+                .phoneNumber(convertToPhone(accountRequest))
+                .email(accountRequest.getEmail())
+                .build();
     }
 
     private PhoneNumber convertToPhone(AccountRequest accountRequest) {
