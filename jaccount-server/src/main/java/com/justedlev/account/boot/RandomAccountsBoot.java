@@ -33,7 +33,7 @@ public class RandomAccountsBoot implements ApplicationRunner {
     private final PhoneNumberConverter phoneNumberConverter;
 
     @Override
-    public void run(ApplicationArguments args) throws Exception {
+    public void run(ApplicationArguments args) {
         if (Boolean.TRUE.equals(FILL)) {
             var accountStatuses = AccountStatusCode.values();
             var modes = ModeType.values();
