@@ -48,8 +48,8 @@ public class AccountCustomRepositoryImpl implements AccountCustomRepository {
         var cb = em.getCriteriaBuilder();
         var cq = cb.createQuery(Account.class);
         var root = cq.from(Account.class);
-        var contacts = (Join<Account, Contact>) root.fetch(Account_.contacts);
-        var phoneNumber = (Join<Contact, PhoneNumber>) contacts.fetch(Contact_.phoneNumber);
+        var contacts = (Join<Account, Contact>) root.fetch(Account_.contacts, JoinType.LEFT);
+        var phoneNumber = (Join<Contact, PhoneNumber>) contacts.fetch(Contact_.phoneNumber, JoinType.LEFT);
         var predicates = applyPredicates(filter, cb, cq, root, contacts, phoneNumber);
         var content = applyPageable(pageable, cb, cq, root).getResultList();
 
