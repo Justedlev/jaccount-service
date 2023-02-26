@@ -4,7 +4,6 @@ import com.justedlev.account.enumeration.AccountStatusCode;
 import com.justedlev.account.enumeration.ModeType;
 import com.justedlev.account.repository.entity.Account;
 import com.justedlev.account.repository.entity.Account_;
-import com.justedlev.account.util.Converter;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -35,7 +34,7 @@ public class AccountFilter implements Filter<Account> {
     private String searchText;
 
     @Override
-    public List<Predicate> apply(CriteriaBuilder cb, Path<Account> path) {
+    public List<Predicate> toPredicates(CriteriaBuilder cb, Path<Account> path) {
         List<Predicate> predicates = new ArrayList<>();
 
         if (CollectionUtils.isNotEmpty(getIds())) {
@@ -43,7 +42,7 @@ public class AccountFilter implements Filter<Account> {
         }
 
         if (CollectionUtils.isNotEmpty(getNicknames())) {
-            predicates.add(cb.lower(path.get(Account_.nickname)).in(Converter.toLowerCase(getNicknames())));
+            predicates.add(path.get(Account_.nickname).in(getNicknames()));
         }
 
         if (CollectionUtils.isNotEmpty(getModes())) {
@@ -74,7 +73,8 @@ public class AccountFilter implements Filter<Account> {
         return Optional.ofNullable(searchText)
                 .filter(StringUtils::isNotBlank)
                 .map(String::toLowerCase)
-                .map(q -> q.replaceAll("\\s{2}", " "))
+                .map(String::strip)
+                .map(q -> q.replaceAll("\\s+", " "))
                 .map(q -> "%" + q + "%")
                 .map(q -> cb.or(
                         cb.like(cb.lower(path.get(Account_.nickname)), q),

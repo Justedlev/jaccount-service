@@ -36,7 +36,7 @@ public class AccountCustomRepositoryImpl implements AccountCustomRepository {
         var root = cq.from(Account.class);
         root.fetch(Account_.contacts, JoinType.LEFT)
                 .fetch(Contact_.phoneNumber, JoinType.LEFT);
-        var predicateList = filter.apply(cb, root);
+        var predicateList = filter.toPredicates(cb, root);
         applyPredicates(cq, predicateList);
 
         return em.createQuery(cq).getResultList();
@@ -51,8 +51,7 @@ public class AccountCustomRepositoryImpl implements AccountCustomRepository {
         var contacts = (Join<Account, Contact>) root.fetch(Account_.contacts);
         var phoneNumber = (Join<Contact, PhoneNumber>) contacts.fetch(Contact_.phoneNumber);
         var predicates = applyPredicates(filter, cb, cq, root, contacts, phoneNumber);
-        var content = applyPageable(pageable, cb, cq, root)
-                .getResultList();
+        var content = applyPageable(pageable, cb, cq, root).getResultList();
 
         return PageableExecutionUtils.getPage(content, pageable, () -> executeCountQuery(predicates));
     }
@@ -63,14 +62,14 @@ public class AccountCustomRepositoryImpl implements AccountCustomRepository {
                                         Root<Account> root,
                                         Join<Account, Contact> contacts,
                                         Join<Contact, PhoneNumber> phoneNumber) {
-        var predicateList = filter.apply(cb, root);
-        createSearchPredicate(filter.getSearchText(), cb, root, contacts, phoneNumber)
+        var predicateList = filter.toPredicates(cb, root);
+        createSearchPredicate(filter, cb, root, contacts, phoneNumber)
                 .ifPresent(predicateList::add);
 
         return applyPredicates(cq, predicateList);
     }
 
-    private Predicate[] applyPredicates(CriteriaQuery<Account> cq,
+    private Predicate[] applyPredicates(CriteriaQuery<?> cq,
                                         List<Predicate> predicateList) {
         var predicateArray = predicateList.toArray(Predicate[]::new);
         Optional.ofNullable(predicateArray)
@@ -96,16 +95,17 @@ public class AccountCustomRepositoryImpl implements AccountCustomRepository {
         return query;
     }
 
-    private long executeCountQuery(Predicate... predicates) {
+    private long executeCountQuery(Predicate[] predicates) {
         return em.createQuery(createCountQuery(predicates))
                 .getSingleResult();
     }
 
-    private CriteriaQuery<Long> createCountQuery(Predicate... predicates) {
+    private CriteriaQuery<Long> createCountQuery(Predicate[] predicates) {
         var cb = em.getCriteriaBuilder();
         var cq = cb.createQuery(Long.class);
         var root = cq.from(Account.class);
-        root.join(Account_.contacts).join(Contact_.phoneNumber);
+        root.join(Account_.contacts, JoinType.LEFT)
+                .join(Contact_.phoneNumber, JoinType.LEFT);
         Optional.ofNullable(predicates)
                 .filter(ArrayUtils::isNotEmpty)
                 .ifPresent(cq::where);
@@ -113,15 +113,16 @@ public class AccountCustomRepositoryImpl implements AccountCustomRepository {
         return cq.select(cb.count(root));
     }
 
-    private Optional<Predicate> createSearchPredicate(String searchText,
+    private Optional<Predicate> createSearchPredicate(AccountFilter filter,
                                                       CriteriaBuilder cb,
                                                       Path<Account> root,
                                                       Join<Account, Contact> contacts,
                                                       Join<Contact, PhoneNumber> phoneNumber) {
-        return Optional.ofNullable(searchText)
+        return Optional.ofNullable(filter.getSearchText())
                 .filter(StringUtils::isNotBlank)
                 .map(String::toLowerCase)
-                .map(q -> q.replaceAll("\\s{2}", " "))
+                .map(String::strip)
+                .map(q -> q.replaceAll("\\s+", " "))
                 .map(q -> "%" + q + "%")
                 .map(q -> cb.or(
                         cb.like(cb.lower(root.get(Account_.nickname)), q),

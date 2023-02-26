@@ -7,7 +7,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface Filter<E> {
-    List<Predicate> apply(CriteriaBuilder cb, Path<E> path);
+    List<Predicate> toPredicates(CriteriaBuilder cb, Path<E> path);
 
     Optional<Predicate> search(CriteriaBuilder cb, Path<E> path);
+
 }
