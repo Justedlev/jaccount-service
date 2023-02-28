@@ -45,7 +45,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    @Transactional(timeout = 5, isolation = Isolation.READ_UNCOMMITTED)
+    @Transactional(timeout = 120, isolation = Isolation.READ_UNCOMMITTED)
     public PageResponse<AccountResponse> getPageByFilter(AccountFilterParams params, PaginationRequest pagination) {
         var filter = modelMapper.typeMap(AccountFilterParams.class, AccountFilter.class)
                 .addMapping(AccountFilterParams::getQ, AccountFilter::setSearchText)
