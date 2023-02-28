@@ -18,6 +18,8 @@ import com.justedlev.common.model.response.ReportResponse;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.persistence.EntityNotFoundException;
@@ -43,6 +45,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
+    @Transactional(timeout = 5, isolation = Isolation.READ_UNCOMMITTED)
     public PageResponse<AccountResponse> getPageByFilter(AccountFilterParams params, PaginationRequest pagination) {
         var filter = modelMapper.typeMap(AccountFilterParams.class, AccountFilter.class)
                 .addMapping(AccountFilterParams::getQ, AccountFilter::setSearchText)

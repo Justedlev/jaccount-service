@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 @Order(value = 10)
 @RequiredArgsConstructor
 public class RandomAccountsBoot implements ApplicationRunner {
-    private static final Boolean FILL = Boolean.TRUE;
+    private static final Boolean FILL = Boolean.FALSE;
     private final AccountComponent accountComponent;
     private final JAccountProperties accountProperties;
     private final PhoneNumberConverter phoneNumberConverter;
