@@ -22,13 +22,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Slf4j
 @Component
 @Order(value = 10)
 @RequiredArgsConstructor
 public class RandomAccountsBoot implements ApplicationRunner {
-    private static final Boolean FILL = Boolean.FALSE;
+    private static final Boolean FILL = Boolean.TRUE;
     private final AccountComponent accountComponent;
     private final JAccountProperties accountProperties;
     private final PhoneNumberConverter phoneNumberConverter;
@@ -39,12 +41,11 @@ public class RandomAccountsBoot implements ApplicationRunner {
             var accountStatuses = AccountStatusCode.values();
             var modes = ModeType.values();
             var genders = Gender.values();
-            var count = RandomUtils.nextInt(10, 50);
             var phonePrefix = "+972";
             var emailPostfix = "@" + accountProperties.getService().getName().toLowerCase() + ".co.il";
 
             List<Account> list = new ArrayList<>();
-            for (int i = 0; i < count; i++) {
+            for (int i = 0; i < RandomUtils.nextInt(1000, 5000); i++) {
                 var phoneNumber = phonePrefix + RandomUtils.nextInt(100000000, 999999999);
                 var phone = phoneNumberConverter.convert(phoneNumber);
                 var nickname = RandomStringUtils.randomAlphanumeric(4, 8);
@@ -53,6 +54,8 @@ public class RandomAccountsBoot implements ApplicationRunner {
                         .email(nickname + emailPostfix)
                         .main(true)
                         .build();
+                var contacts = randomContacts(phonePrefix, emailPostfix);
+                contacts.add(contact);
                 var account = Account.builder()
                         .nickname(nickname)
                         .status(accountStatuses[getRandomIndex(accountStatuses.length)])
@@ -61,14 +64,24 @@ public class RandomAccountsBoot implements ApplicationRunner {
                         .firstName(RandomStringUtils.randomAlphanumeric(4, 8))
                         .lastName(RandomStringUtils.randomAlphanumeric(4, 8))
                         .createdAt(new Timestamp(RandomUtils.nextLong(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(3), System.currentTimeMillis())))
-                        .contacts(Set.of(contact))
+                        .contacts(contacts)
                         .build();
+                contacts.forEach(c -> c.setAccount(account));
                 list.add(account);
             }
 
             var res = accountComponent.saveAll(list);
             log.info("Created {} random accounts", res.size());
         }
+    }
+
+    private Set<Contact> randomContacts(String phonePrefix, String emailPostfix) {
+        return IntStream.range(0, RandomUtils.nextInt(1, 5))
+                .mapToObj(i -> Contact.builder()
+                        .phoneNumber(phoneNumberConverter.convert(phonePrefix + RandomUtils.nextInt(100000000, 999999999)))
+                        .email(RandomStringUtils.randomAlphanumeric(4, 8) + emailPostfix)
+                        .build())
+                .collect(Collectors.toSet());
     }
 
     private int getRandomIndex(int length) {

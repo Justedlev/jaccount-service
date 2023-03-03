@@ -8,7 +8,9 @@ import com.justedlev.account.enumeration.ModeType;
 import com.justedlev.account.model.Avatar;
 import com.justedlev.account.model.request.AccountRequest;
 import com.justedlev.account.repository.AccountRepository;
+import com.justedlev.account.repository.ContactRepository;
 import com.justedlev.account.repository.custom.filter.AccountFilter;
+import com.justedlev.account.repository.custom.filter.ContactFilter;
 import com.justedlev.account.repository.entity.Account;
 import com.justedlev.account.repository.entity.Contact;
 import com.justedlev.storage.client.JStorageFeignClient;
@@ -33,6 +35,7 @@ public class AccountComponentImpl implements AccountComponent {
     private final AccountMapper accountMapper;
     private final JStorageFeignClient storageFeignClient;
     private final ModelMapper baseMapper;
+    private final ContactRepository contactRepository;
 
     @Override
     public List<Account> getByFilter(AccountFilter filter) {
@@ -102,8 +105,8 @@ public class AccountComponentImpl implements AccountComponent {
 
     @Override
     public Account create(AccountRequest request) {
-        var account = getByEmail(request.getEmail())
-                .or(() -> getByNickname(request.getNickname()))
+        var account = getByNickname(request.getNickname())
+                .or(() -> getByEmail(request.getEmail()))
                 .filter(current -> !current.getStatus().equals(AccountStatusCode.DELETED));
 
         if (account.isPresent()) {
@@ -186,12 +189,13 @@ public class AccountComponentImpl implements AccountComponent {
         return Optional.ofNullable(email)
                 .filter(StringUtils::isNotBlank)
                 .map(Set::of)
-                .map(current -> AccountFilter.builder()
+                .map(current -> ContactFilter.builder()
                         .emails(current)
                         .build())
-                .map(this::getByFilter)
+                .map(contactRepository::findByFilter)
                 .stream()
                 .flatMap(Collection::stream)
+                .map(Contact::getAccount)
                 .max(Comparator.comparing(Account::getCreatedAt));
     }
 

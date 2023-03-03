@@ -24,7 +24,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.persistence.EntityNotFoundException;
 import java.util.List;
-import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -50,16 +49,15 @@ public class AccountServiceImpl implements AccountService {
         var filter = modelMapper.typeMap(AccountFilterParams.class, AccountFilter.class)
                 .addMapping(AccountFilterParams::getQ, AccountFilter::setSearchText)
                 .map(params);
-        var page = accountComponent.getPageByFilter(filter, pagination.toPegeable())
-                .map(accountMapper::map);
+        var page = accountComponent.getPageByFilter(filter, pagination.toPegeable());
 
-        return PageResponse.from(page);
+        return PageResponse.from(page, accountMapper::map);
     }
 
     @Override
     public AccountResponse getByEmail(String email) {
         var filter = AccountFilter.builder()
-                .emails(Set.of(email))
+//                .emails(Set.of(email))
                 .build();
         var account = accountComponent.getByFilter(filter)
                 .stream()

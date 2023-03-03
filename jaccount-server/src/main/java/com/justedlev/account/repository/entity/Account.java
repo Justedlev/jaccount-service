@@ -17,7 +17,6 @@ import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
-import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -64,9 +63,8 @@ public class Account extends BaseEntity {
     @Builder.Default
     @Column(name = "mode_at", nullable = false)
     private Timestamp modeAt = DateTimeUtils.nowTimestamp();
-    @Builder.Default
     @ToString.Exclude
-    @OneToMany(mappedBy = "account")
+    @OneToMany(mappedBy = "account", fetch = FetchType.LAZY)
     @Cascade({
             CascadeType.DETACH,
             CascadeType.MERGE,
@@ -74,7 +72,7 @@ public class Account extends BaseEntity {
             CascadeType.REFRESH,
             CascadeType.SAVE_UPDATE
     })
-    private Set<Contact> contacts = new HashSet<>();
+    private Set<Contact> contacts;
 
     public Contact getMainContact() {
         return contacts.stream()

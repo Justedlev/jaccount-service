@@ -34,22 +34,27 @@ public class AccountMapperImpl implements AccountMapper {
     @Override
     public AccountResponse map(Account request) {
         var res = mapper.map(request, AccountResponse.class);
-        var contacts = request.getContacts()
-                .stream()
-                .map(current -> mapper.map(current, ContactResponse.class))
-                .collect(Collectors.toSet());
+        var contacts = convertToContactResponse(request);
         res.setContacts(contacts);
 
         return res;
     }
 
+    private Set<ContactResponse> convertToContactResponse(Account request) {
+        return request.getContacts()
+                .stream()
+                .map(current -> mapper.map(current, ContactResponse.class))
+                .collect(Collectors.toSet());
+    }
+
     @Override
     public Account map(AccountRequest request) {
-        var res = mapper.map(request, Account.class);
+        var account = mapper.map(request, Account.class);
         var contact = convertToContact(request);
-        res.setContacts(Set.of(contact));
+        contact.setAccount(account);
+        account.setContacts(Set.of(contact));
 
-        return res;
+        return account;
     }
 
     @PostConstruct

@@ -1,6 +1,6 @@
 package com.justedlev.account.repository.custom.impl;
 
-import com.justedlev.account.repository.custom.AccountCustomRepository;
+import com.justedlev.account.repository.custom.AccountFilterableRepository;
 import com.justedlev.account.repository.custom.filter.AccountFilter;
 import com.justedlev.account.repository.entity.*;
 import lombok.NonNull;
@@ -25,7 +25,7 @@ import java.util.Optional;
 @Slf4j
 @Repository
 @RequiredArgsConstructor
-public class AccountCustomRepositoryImpl implements AccountCustomRepository {
+public class AccountFilterableRepositoryImpl implements AccountFilterableRepository {
     @PersistenceContext
     private final EntityManager em;
 
@@ -34,8 +34,7 @@ public class AccountCustomRepositoryImpl implements AccountCustomRepository {
         var cb = em.getCriteriaBuilder();
         var cq = cb.createQuery(Account.class);
         var root = cq.from(Account.class);
-        root.fetch(Account_.contacts, JoinType.LEFT)
-                .fetch(Contact_.phoneNumber, JoinType.LEFT);
+        root.fetch(Account_.contacts, JoinType.LEFT);
         var predicateList = filter.toPredicates(cb, root);
         applyPredicates(cq, predicateList);
 

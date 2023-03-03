@@ -31,7 +31,7 @@ public class HistoryComponentImpl implements HistoryComponent {
                 BaseEntity_.CREATED_AT
         );
         var filter = AccountFilter.builder()
-                .emails(request.getEmails())
+//                .emails(request.getEmails())
                 .build();
         var accounts = accountRepository.findByFilter(filter, page)
                 .getContent()

@@ -25,7 +25,6 @@ import java.util.*;
 public class AccountFilter implements Filter<Account> {
     private Collection<UUID> ids;
     private Collection<String> nicknames;
-    private Collection<String> emails;
     private Collection<AccountStatusCode> statuses;
     private Collection<ModeType> modes;
     private Collection<String> activationCodes;
