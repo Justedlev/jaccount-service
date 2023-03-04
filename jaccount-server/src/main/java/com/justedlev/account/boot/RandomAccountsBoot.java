@@ -45,7 +45,7 @@ public class RandomAccountsBoot implements ApplicationRunner {
             var emailPostfix = "@" + accountProperties.getService().getName().toLowerCase() + ".co.il";
 
             List<Account> list = new ArrayList<>();
-            for (int i = 0; i < RandomUtils.nextInt(1000, 5000); i++) {
+            for (int i = 0; i < RandomUtils.nextInt(50, 100); i++) {
                 var phoneNumber = phonePrefix + RandomUtils.nextInt(100000000, 999999999);
                 var phone = phoneNumberConverter.convert(phoneNumber);
                 var nickname = RandomStringUtils.randomAlphanumeric(4, 8);

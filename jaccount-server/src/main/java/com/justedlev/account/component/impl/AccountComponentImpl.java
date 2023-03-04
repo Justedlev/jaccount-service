@@ -66,10 +66,6 @@ public class AccountComponentImpl implements AccountComponent {
                 .max(Comparator.comparing(Account::getCreatedAt))
                 .orElseThrow(() -> new EntityNotFoundException("Already activated"));
         account.setStatus(AccountStatusCode.ACTUAL);
-        account.getContacts()
-                .stream()
-                .min(Comparator.comparing(Contact::getCreatedAt))
-                .ifPresent(contact -> contact.setMain(Boolean.TRUE));
 
         return save(account);
     }

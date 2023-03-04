@@ -37,10 +37,9 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public PageResponse<AccountResponse> getPage(PaginationRequest request) {
-        var page = accountComponent.getPage(request.toPegeable())
-                .map(accountMapper::map);
+        var page = accountComponent.getPage(request.toPegeable());
 
-        return PageResponse.from(page);
+        return PageResponse.from(page, accountMapper::map);
     }
 
     @Override

@@ -75,6 +75,7 @@ public class AccountMapperImpl implements AccountMapper {
         return Contact.builder()
                 .phoneNumber(convertToPhone(accountRequest))
                 .email(accountRequest.getEmail())
+                .main(Boolean.TRUE)
                 .build();
     }
 
