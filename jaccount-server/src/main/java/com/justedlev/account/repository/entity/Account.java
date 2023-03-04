@@ -10,11 +10,11 @@ import com.justedlev.common.entity.BaseEntity;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.Hibernate;
+import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
-import org.hibernate.annotations.*;
+import org.hibernate.annotations.GenericGenerator;
+import org.hibernate.annotations.Type;
 
-import javax.persistence.Entity;
-import javax.persistence.Table;
 import javax.persistence.*;
 import java.sql.Timestamp;
 import java.util.Objects;
@@ -63,17 +63,6 @@ public class Account extends BaseEntity {
     @Builder.Default
     @Column(name = "mode_at", nullable = false)
     private Timestamp modeAt = DateTimeUtils.nowTimestamp();
-    @ToString.Exclude
-    @OneToOne
-    @Where(clause = "isMain = true")
-    @Cascade({
-            CascadeType.DETACH,
-            CascadeType.MERGE,
-            CascadeType.PERSIST,
-            CascadeType.REFRESH,
-            CascadeType.SAVE_UPDATE
-    })
-    private Contact mainContact;
     @ToString.Exclude
     @OneToMany(mappedBy = "account")
     @Cascade({

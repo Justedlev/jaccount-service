@@ -34,7 +34,7 @@ public class Contact extends BaseEntity {
     @Column(name = "email", nullable = false)
     private String email;
     @ToString.Exclude
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @Cascade({
             CascadeType.DETACH,
             CascadeType.MERGE,
@@ -49,7 +49,7 @@ public class Contact extends BaseEntity {
     )
     private PhoneNumber phoneNumber;
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @Cascade({
             CascadeType.DETACH,
             CascadeType.MERGE,
